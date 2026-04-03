@@ -9,6 +9,11 @@ use serde::{Deserialize, Serialize};
 pub struct PK {
     pub der: String,
 }
+impl std::fmt::Display for PK {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(f, "{}", self.der)
+    }
+}
 impl PK {
     pub fn new(pk: PKey<Public>) -> Self {
         PK {
@@ -23,6 +28,11 @@ impl PK {
 #[derive(Clone, Debug, Serialize, Deserialize, Hash, PartialEq, Eq)]
 pub struct SK {
     pub der: String,
+}
+impl std::fmt::Display for SK {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(f, "{}", self.der)
+    }
 }
 impl SK {
     pub fn new(sk: PKey<Private>) -> Self {
