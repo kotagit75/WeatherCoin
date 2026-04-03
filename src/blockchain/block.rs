@@ -93,6 +93,10 @@ impl Block {
             &self.signature,
         )
     }
+
+    pub fn is_valid(&self) -> bool {
+        self.verify_signature() && self.transactions.iter().all(|t| t.is_valid())
+    }
 }
 
 pub fn calculate_hash(
