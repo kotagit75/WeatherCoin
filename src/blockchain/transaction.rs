@@ -43,7 +43,7 @@ impl Transaction {
             signature: create_transaction_signature(&sender, &recipient, amount, sk)?,
         })
     }
-    pub fn verify(&self) -> bool {
+    pub fn verify_signature(&self) -> bool {
         self.sender.clone().verify(
             transacction_to_buf_for_signature(&self.sender, &self.recipient, self.amount)
                 .as_slice(),

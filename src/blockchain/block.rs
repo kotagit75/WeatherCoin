@@ -79,7 +79,7 @@ impl Block {
             )?,
         ))
     }
-    pub fn verify(&self) -> bool {
+    pub fn verify_signature(&self) -> bool {
         self.issuer.verify(
             block_to_buf_for_signature(
                 self.index,
