@@ -16,7 +16,7 @@ use crate::{
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
 pub struct Block {
     pub index: u64,
-    pub timestamp: u64,
+    pub timestamp: i64,
     pub transactions: Vec<Transaction>,
     pub beacon: Beacon,
     pub vdf_solution: Vec<u8>,
@@ -29,7 +29,7 @@ pub struct Block {
 impl Block {
     pub fn new(
         index: u64,
-        timestamp: u64,
+        timestamp: i64,
         transactions: Vec<Transaction>,
         beacon: Beacon,
         vdf_solution: Vec<u8>,
@@ -61,7 +61,7 @@ impl Block {
     }
     pub fn new_with_creating_signature(
         index: u64,
-        timestamp: u64,
+        timestamp: i64,
         transactions: Vec<Transaction>,
         beacon: Beacon,
         vdf_solution: Vec<u8>,
@@ -128,7 +128,7 @@ impl Block {
 
 pub fn calculate_hash(
     index: u64,
-    timestamp: u64,
+    timestamp: i64,
     transactions: &[Transaction],
     beacon: Beacon,
     vdf_solution: &[u8],
@@ -146,7 +146,7 @@ pub fn calculate_hash(
 
 fn block_to_buf_for_signature(
     index: u64,
-    timestamp: u64,
+    timestamp: i64,
     transactions: &[Transaction],
     beacon: Beacon,
     vdf_solution: &[u8],
@@ -162,7 +162,7 @@ fn block_to_buf_for_signature(
 
 fn create_block_signature(
     index: u64,
-    timestamp: u64,
+    timestamp: i64,
     transactions: &[Transaction],
     beacon: Beacon,
     vdf_solution: &[u8],
@@ -203,7 +203,7 @@ pub fn genesis_block() -> Block {
 
 fn block_to_buf_for_vdf(
     index: u64,
-    timestamp: u64,
+    timestamp: i64,
     transactions: &[Transaction],
     beacon: Beacon,
     issuer: &Address,
@@ -215,7 +215,7 @@ fn block_to_buf_for_vdf(
 }
 pub fn solve_block_vdf(
     index: u64,
-    timestamp: u64,
+    timestamp: i64,
     transactions: &[Transaction],
     beacon: Beacon,
     issuer: &Address,
