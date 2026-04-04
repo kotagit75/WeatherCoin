@@ -10,3 +10,5 @@ pub enum Effect {
 pub fn update(event: Event, state: State) -> (State, Vec<Effect>) {
     (state, vec![Effect::None])
 }
+
+pub async fn run_effect(effect: Effect) {}
