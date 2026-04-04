@@ -58,6 +58,16 @@ impl Chain {
             .all(|windows| is_valid_new_block(&windows[0], &windows[1]));
         is_valid_genesis_block && is_valid_chain
     }
+
+    pub fn replace(&self, new_chain: Chain) -> Self {
+        if new_chain.is_valid() && new_chain.blocks.len() > self.blocks.len() {
+            Self {
+                blocks: new_chain.blocks,
+            }
+        } else {
+            self.clone()
+        }
+    }
 }
 
 pub fn is_valid_new_block(block: &Block, previous_block: &Block) -> bool {
