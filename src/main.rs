@@ -8,5 +8,8 @@ fn main() {
     let Ok(sk) = node::load_key() else {
         return;
     };
-    println!("address: {:?}", sk.to_pk())
+    let Ok(state) = state::State::new(sk) else {
+        return;
+    };
+    println!("address: {:?}", state.address)
 }
