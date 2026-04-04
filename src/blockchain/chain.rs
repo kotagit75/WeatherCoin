@@ -49,6 +49,15 @@ impl Chain {
             sk,
         )
     }
+
+    pub fn is_valid(&self) -> bool {
+        let is_valid_genesis_block = self.blocks.first().cloned() == Some(genesis_block());
+        let is_valid_chain = self
+            .blocks
+            .windows(2)
+            .all(|windows| is_valid_new_block(&windows[0], &windows[1]));
+        is_valid_genesis_block && is_valid_chain
+    }
 }
 
 pub fn is_valid_new_block(block: &Block, previous_block: &Block) -> bool {
