@@ -5,7 +5,7 @@ use axum::{
 use serde::{Deserialize, Serialize};
 use tokio::sync::{mpsc, watch};
 
-use crate::{blockchain::address::Address, state::State, update::Event, util::key::PK};
+use crate::{state::State, update::Event, util::key::PK};
 
 const API_PORT: u32 = 8080;
 pub async fn init_api(event_tx: mpsc::Sender<Event>, state_rx: watch::Receiver<State>) {
