@@ -126,7 +126,7 @@ impl Block {
     }
 }
 
-pub fn calculate_hash(
+pub fn calculate_hash_for_block(
     index: u64,
     timestamp: i64,
     transactions: &[Transaction],
