@@ -2,7 +2,7 @@ use openssl::error::ErrorStack;
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    blockchain::{address::Address, chain::Chain},
+    blockchain::{address::Address, chain::Chain, transaction::Transaction},
     util::key::SK,
 };
 
@@ -11,6 +11,7 @@ pub struct State {
     pub secret_key: SK,
     pub address: Address,
     pub chain: Chain,
+    pub transactions: Vec<Transaction>,
 }
 
 impl State {
@@ -19,6 +20,7 @@ impl State {
             secret_key,
             address,
             chain: Chain::new(),
+            transactions: Vec::new(),
         })
     }
 }

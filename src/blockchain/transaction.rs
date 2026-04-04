@@ -31,8 +31,8 @@ impl Transaction {
         }
     }
     pub fn new_with_creating_signature(
-        sender: Address,
-        recipient: Address,
+        sender: &Address,
+        recipient: &Address,
         amount: u64,
         sk: &SK,
     ) -> Result<Self, ErrorStack> {
@@ -40,7 +40,7 @@ impl Transaction {
             sender: sender.clone(),
             recipient: recipient.clone(),
             amount,
-            signature: create_transaction_signature(&sender, &recipient, amount, sk)?,
+            signature: create_transaction_signature(sender, recipient, amount, sk)?,
         })
     }
     pub fn verify_signature(&self) -> bool {
