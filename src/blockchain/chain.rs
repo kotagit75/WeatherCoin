@@ -50,3 +50,10 @@ impl Chain {
         )
     }
 }
+
+pub fn is_valid_new_block(block: &Block, previous_block: &Block) -> bool {
+    block.index == previous_block.index + 1
+        && block.timestamp > previous_block.timestamp
+        && block.previous_hash == previous_block.hash
+        && block.calculate_hash() == block.hash
+}
