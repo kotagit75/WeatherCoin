@@ -7,7 +7,7 @@ pub struct Beacon {
     pub value: i32,
 }
 
-fn get_weather(lat: f64, lon: f64) -> Option<i32> {
+fn get_temperature(lat: f64, lon: f64) -> Option<i32> {
     match current_dir() {
         Ok(x) => {
             let status = Command::new("./beacon.sh")
@@ -24,7 +24,7 @@ fn get_weather(lat: f64, lon: f64) -> Option<i32> {
 pub fn get_beacon() -> Option<Beacon> {
     let positions = [(40.782514, -73.965446), (36.2048, 138.2529)];
     let sum: i32 = positions
-        .map(|pos| get_weather(pos.0, pos.1))
+        .map(|pos| get_temperature(pos.0, pos.1))
         .iter()
         .flatten()
         .sum();
