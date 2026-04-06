@@ -2,8 +2,8 @@ use crate::{
     beacon::get_beacon,
     blockchain::{
         address::Address,
-        block::{Block, NUMBER_OF_TRANSACTIONS_PER_BLOCK},
-        transaction::Transaction,
+        block::Block,
+        transaction::{Transaction, coinbase_transaction},
     },
     state::State,
 };
@@ -13,6 +13,7 @@ use tokio::sync::mpsc;
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub enum Event {
     AddTransaction(Address, u64),
+    MineBlock,
     CompletedMineBlock(Block),
 }
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
@@ -22,10 +23,10 @@ pub enum Effect {
 
 pub fn update(event: Event, state: State) -> (State, Vec<Effect>) {
     match event {
-        Event::AddTransaction(address, amount) => {
-            if let Ok(transaction) = Transaction::new_with_creating_signature(
+        Event::AddTransaction(recipient, amount) => {
+            if let Some(Ok(transaction)) = state.chain.generate_transaction(
                 &state.address,
-                &address,
+                &recipient,
                 amount,
                 &state.secret_key,
             ) {
@@ -34,24 +35,29 @@ pub fn update(event: Event, state: State) -> (State, Vec<Effect>) {
                     .into_iter()
                     .chain([transaction])
                     .collect();
-                return if new_transactions.len() >= NUMBER_OF_TRANSACTIONS_PER_BLOCK {
-                    (
-                        State {
-                            transactions: Vec::new(),
-                            ..state
-                        },
-                        vec![Effect::MineBlock(new_transactions)],
-                    )
-                } else {
-                    (
-                        State {
-                            transactions: new_transactions,
-                            ..state
-                        },
-                        Vec::new(),
-                    )
-                };
+                return (
+                    State {
+                        transactions: new_transactions,
+                        ..state
+                    },
+                    Vec::new(),
+                );
             };
+        }
+        Event::MineBlock => {
+            let coinbase = coinbase_transaction(&state.address);
+            let blocks_for_mine: Vec<Transaction> = [coinbase]
+                .iter()
+                .chain(&state.transactions)
+                .cloned()
+                .collect();
+            return (
+                State {
+                    transactions: Vec::new(),
+                    ..state
+                },
+                vec![Effect::MineBlock(blocks_for_mine)],
+            );
         }
         Event::CompletedMineBlock(new_block) => {
             let new_state = State {

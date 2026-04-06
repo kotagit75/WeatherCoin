@@ -11,7 +11,9 @@ const API_PORT: u32 = 8080;
 pub async fn init_api(event_tx: mpsc::Sender<Event>, state_rx: watch::Receiver<State>) {
     let app = Router::new()
         .route("/state", get(handle_get_state))
+        .route("/balance", get(handle_get_balance))
         .route("/tx", post(handle_post_transaction))
+        .route("/mine", post(handle_post_mine))
         .with_state((event_tx, state_rx));
     let listener = tokio::net::TcpListener::bind(format!("127.0.0.1:{}", API_PORT))
         .await
@@ -27,6 +29,15 @@ async fn handle_get_state(
     )>,
 ) -> response::Json<State> {
     response::Json(state_rx.borrow().clone())
+}
+async fn handle_get_balance(
+    extract::State((_, mut state_rx)): extract::State<(
+        mpsc::Sender<Event>,
+        watch::Receiver<State>,
+    )>,
+) -> response::Json<u64> {
+    let state = state_rx.borrow().clone();
+    response::Json(state.chain.get_balance(&state.address))
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
@@ -50,4 +61,10 @@ async fn handle_post_transaction(
             .await
             .is_ok(),
     )
+}
+
+async fn handle_post_mine(
+    extract::State((event_tx, _)): extract::State<(mpsc::Sender<Event>, watch::Receiver<State>)>,
+) -> response::Json<bool> {
+    response::Json(event_tx.send(Event::MineBlock).await.is_ok())
 }

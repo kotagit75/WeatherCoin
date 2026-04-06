@@ -6,7 +6,7 @@ use crate::{
     blockchain::{
         address::Address,
         block::{Block, genesis_block, solve_block_vdf},
-        transaction::Transaction,
+        transaction::{Transaction, UnspentTransaction, get_transaction_out},
     },
     util::key::SK,
 };
@@ -93,6 +93,42 @@ impl Chain {
         } else {
             self.clone()
         }
+    }
+
+    pub fn get_unspent_transactions(&self) -> (Vec<UnspentTransaction>, u64 /*new id */) {
+        self.blocks.iter().fold((Vec::new(), 1), |acc, block| {
+            block.get_unspent_transactions(acc)
+        })
+    }
+
+    pub fn generate_transaction(
+        &self,
+        sender: &Address,
+        recipient: &Address,
+        amount: u64,
+        secret_key: &SK,
+    ) -> Option<Result<Transaction, ErrorStack>> {
+        let (unspent_transactions, _) = self.get_unspent_transactions();
+        unspent_transactions
+            .iter()
+            .find(|tx| &tx.address == sender)
+            .map(|unspent_transaction| {
+                Transaction::new_with_creating_signature(
+                    sender,
+                    get_transaction_out(sender, recipient, amount, unspent_transaction.amount),
+                    unspent_transaction.id,
+                    secret_key,
+                )
+            })
+    }
+
+    pub fn get_balance(&self, address: &Address) -> u64 {
+        let (unspent_transactions, _) = self.get_unspent_transactions();
+        unspent_transactions
+            .iter()
+            .filter(|tx| &tx.address == address)
+            .map(|tx| tx.amount)
+            .sum()
     }
 }
 

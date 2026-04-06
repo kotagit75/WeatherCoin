@@ -4,7 +4,10 @@ use vdf::InvalidIterations;
 
 use crate::{
     beacon::Beacon,
-    blockchain::{address::Address, transaction::Transaction},
+    blockchain::{
+        address::Address,
+        transaction::{Transaction, UnspentTransaction, is_valid_coinbase_transaction},
+    },
     util::{
         hash::{Hashed, hash},
         key::{PK, SK},
@@ -120,9 +123,11 @@ impl Block {
     }
 
     pub fn is_valid(&self) -> bool {
+        let (coinbase, normal) = self.transactions.split_at(1);
         self.verify_signature()
             && self.verify_vdf_solution()
-            && self.transactions.iter().all(|t| t.is_valid())
+            && is_valid_coinbase_transaction(&coinbase[0])
+            && normal.iter().all(|t| t.is_valid())
     }
 
     pub fn calculate_hash(&self) -> Hashed {
@@ -136,6 +141,17 @@ impl Block {
             self.previous_hash.clone(),
             self.signature.clone(),
         )
+    }
+
+    pub fn get_unspent_transactions(
+        &self,
+        (previous_unspent, first_id): (Vec<UnspentTransaction>, u64),
+    ) -> (Vec<UnspentTransaction>, u64 /*new id */) {
+        self.transactions
+            .iter()
+            .fold((previous_unspent, first_id), |acc, tx| {
+                tx.get_unspent_transactions(acc)
+            })
     }
 }
 
@@ -246,5 +262,3 @@ pub fn solve_block_vdf(
         .as_slice(),
     )
 }
-
-pub const NUMBER_OF_TRANSACTIONS_PER_BLOCK: usize = 4;
