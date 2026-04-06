@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::util::signature::{Signature, sign, verify};
 
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub struct PK {
     pub der: String,
 }
