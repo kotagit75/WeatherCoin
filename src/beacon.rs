@@ -10,7 +10,7 @@ pub struct Beacon {
 fn get_temperature(lat: f64, lon: f64) -> Option<i32> {
     match current_dir() {
         Ok(x) => {
-            let status = Command::new("./beacon.sh")
+            let status = Command::new("beacon/temperature.sh")
                 .arg(lat.to_string())
                 .arg(lon.to_string())
                 .current_dir(x)
