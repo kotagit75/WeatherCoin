@@ -36,9 +36,7 @@ mkdir beacon
 Create a shell script named `beacon/temperature.sh`.This script retrieves the latitude and longitude and returns the temperature at that location as an exit code.It doesn't matter how you implement it. Here is an example. Note that this API does not actually exist.
 ```bash
 #!/bin/bash
-
 temperature=$(curl "https://example.com/api?latitude=$1&longitude=$2")
-echo $temperature
 exit $(echo "scale=1; $temperature * 10" | bc | sed s/\.[0-9,]*$//g)
 ```
 ### Usage
