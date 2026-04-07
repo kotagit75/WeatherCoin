@@ -21,13 +21,13 @@ Weather is a source of information where, regardless of who observes it, relativ
 ### Installation
 ```bash
 # Clone the repository (or Download ZIP)
-$ git clone git@github.com:kotagit75/WeatherCoin.git
+git clone git@github.com:kotagit75/WeatherCoin.git
 
 # Navigate to the project directory
-$ cd WeatherCoin
+cd WeatherCoin
 
 # build
-$ cargo build --release
+cargo build --release
 ```
 ### Create a script to retrieve the temperature
 ```bash
@@ -43,23 +43,22 @@ Even without using an API, it is possible to conduct observations by placing sen
 ### Usage
 ```bash
 # run
-$ ./target/release/weather-coin
+./target/release/weather-coin
 
 # get state
-$ curl localhost:8080/state
+curl localhost:8080/state
 
 # get balance
-$ curl localhost:8080/balance
+curl localhost:8080/balance
 
 # send transaction
-$ curl -X POST -H "Content-Type: application/json" -d "{'recipient':'{address}', 'amount': {amount}}" localhost:8080/tx
+curl -X POST -H "Content-Type: application/json" -d "{'recipient':'{address}', 'amount': {amount}}" localhost:8080/tx
 
 # mine a block
-$ curl -X POST localhost:8080/mine
+curl -X POST localhost:8080/mine
 
 # add peer
-$ curl -X POST -H "Content-Type: application/json" -d '{"ip":"{IP Addr}"}' localhost:8080/peer
-
+curl -X POST -H "Content-Type: application/json" -d '{"ip":"{IP Addr}"}' localhost:8080/peer
 ```
 
 ## 📍 Locations which is collected temperature data
