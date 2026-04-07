@@ -22,7 +22,7 @@ async fn main() {
     println!("address: {:?}", state.address);
 
     let (event_tx, mut event_rx) = mpsc::channel(256);
-    let (state_tx, mut state_rx) = watch::channel(state.clone());
+    let (state_tx, state_rx) = watch::channel(state.clone());
     let event_tx_clone = event_tx.clone();
     tokio::spawn(async move {
         api::init_api(event_tx_clone, state_rx).await;

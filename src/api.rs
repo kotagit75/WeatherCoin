@@ -24,18 +24,12 @@ pub async fn init_api(event_tx: mpsc::Sender<Event>, state_rx: watch::Receiver<S
 }
 
 async fn handle_get_state(
-    extract::State((_, mut state_rx)): extract::State<(
-        mpsc::Sender<Event>,
-        watch::Receiver<State>,
-    )>,
+    extract::State((_, state_rx)): extract::State<(mpsc::Sender<Event>, watch::Receiver<State>)>,
 ) -> response::Json<State> {
     response::Json(state_rx.borrow().clone())
 }
 async fn handle_get_balance(
-    extract::State((_, mut state_rx)): extract::State<(
-        mpsc::Sender<Event>,
-        watch::Receiver<State>,
-    )>,
+    extract::State((_, state_rx)): extract::State<(mpsc::Sender<Event>, watch::Receiver<State>)>,
 ) -> response::Json<u64> {
     let state = state_rx.borrow().clone();
     response::Json(state.chain.get_balance(&state.address))
