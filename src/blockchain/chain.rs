@@ -158,4 +158,5 @@ pub fn is_valid_new_block(block: &Block, previous_block: &Block) -> bool {
         && block.timestamp > previous_block.timestamp
         && block.previous_hash == previous_block.hash
         && block.calculate_hash() == block.hash
+        && block.beacon.value > previous_block.beacon.value
 }
