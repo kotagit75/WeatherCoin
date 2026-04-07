@@ -1,9 +1,23 @@
-# WeatherCoin
+<div align="center">
+    <h1>WeatherCoin</h1>
+</div>
 WeatherCoin is a decentralized currency that relies on the randomness of the weather and cryptographic proofs as its foundation.
+
+> [!NOTE]
+> WeatherCoin is currently in active development. The API and features may change without notice.
+
+[![License](https://img.shields.io/badge/license-MIT-blue?style=flat)](LICENSE)
+![Rust](https://img.shields.io/badge/Rust-000000?logo=rust&logoColor=white)
+
+## :sparkles: Features
+- 🌤 Consensus by Weather - Weather data enables rapid consensus building
+- ⚡ Highly energy-efficient - Because VDF is used instead of Proof of Work, it is more energy-efficient
+
 ## How does it work?
 Weather is a source of information where, regardless of who observes it, relatively consistent readings are obtained at the same time; however, it is impossible to predict its changes with absolute accuracy. By incorporating this characteristic of weather into the consensus mechanism of a decentralized system, we can create a currency that does not require proof-of-work.
 
-WeatherCoin gets temperature data from multiple regions around the world. The regions are as follows:
+## Locations which is collected temperature data
+WeatherCoin gets temperature data from multiple regions. The regions are as follows:
 ```geojson
 {
   "type": "FeatureCollection",
