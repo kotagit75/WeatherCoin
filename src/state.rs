@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     blockchain::{address::Address, chain::Chain, transaction::Transaction},
+    p2p::Peer,
     util::key::SK,
 };
 
@@ -12,6 +13,7 @@ pub struct State {
     pub address: Address,
     pub chain: Chain,
     pub transactions: Vec<Transaction>,
+    pub peers: Vec<Peer>,
 }
 
 impl State {
@@ -21,6 +23,30 @@ impl State {
             address,
             chain: Chain::new(),
             transactions: Vec::new(),
+            peers: Vec::new(),
         })
+    }
+
+    pub fn add_to_transaction(&self, transaction: &Transaction) -> (Self, bool) {
+        if !(transaction.is_valid()
+            && self
+                .chain
+                .find_unspent_transaction(transaction.un_spent_id)
+                .is_some())
+        {
+            return (self.clone(), false);
+        }
+        (
+            Self {
+                transactions: self
+                    .transactions
+                    .clone()
+                    .into_iter()
+                    .chain([transaction.clone()])
+                    .collect(),
+                ..self.clone()
+            },
+            true,
+        )
     }
 }

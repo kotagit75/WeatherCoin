@@ -5,7 +5,7 @@ use axum::{
 use serde::{Deserialize, Serialize};
 use tokio::sync::{mpsc, watch};
 
-use crate::{state::State, update::Event, util::key::PK};
+use crate::{p2p::Peer, state::State, update::Event, util::key::PK};
 
 const API_PORT: u32 = 8080;
 pub async fn init_api(event_tx: mpsc::Sender<Event>, state_rx: watch::Receiver<State>) {
@@ -14,8 +14,9 @@ pub async fn init_api(event_tx: mpsc::Sender<Event>, state_rx: watch::Receiver<S
         .route("/balance", get(handle_get_balance))
         .route("/tx", post(handle_post_transaction))
         .route("/mine", post(handle_post_mine))
+        .route("/peer", post(handle_post_peer))
         .with_state((event_tx, state_rx));
-    let listener = tokio::net::TcpListener::bind(format!("127.0.0.1:{}", API_PORT))
+    let listener = tokio::net::TcpListener::bind(format!("0.0.0.0:{}", API_PORT))
         .await
         .unwrap();
     println!("API server is running on http://localhost:{}", API_PORT);
@@ -67,4 +68,20 @@ async fn handle_post_mine(
     extract::State((event_tx, _)): extract::State<(mpsc::Sender<Event>, watch::Receiver<State>)>,
 ) -> response::Json<bool> {
     response::Json(event_tx.send(Event::MineBlock).await.is_ok())
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
+struct PeerPayload {
+    ip: String,
+}
+async fn handle_post_peer(
+    extract::State((event_tx, _)): extract::State<(mpsc::Sender<Event>, watch::Receiver<State>)>,
+    extract::Json(payload): extract::Json<PeerPayload>,
+) -> response::Json<bool> {
+    response::Json(
+        event_tx
+            .send(Event::AddPeer(Peer { ip: payload.ip }))
+            .await
+            .is_ok(),
+    )
 }

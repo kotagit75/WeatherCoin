@@ -6,6 +6,7 @@ pub mod api;
 pub mod beacon;
 pub mod blockchain;
 pub mod node;
+pub mod p2p;
 pub mod state;
 pub mod update;
 pub mod util;
@@ -25,6 +26,10 @@ async fn main() {
     let event_tx_clone = event_tx.clone();
     tokio::spawn(async move {
         api::init_api(event_tx_clone, state_rx).await;
+    });
+    let event_tx_clone = event_tx.clone();
+    tokio::spawn(async move {
+        p2p::init_p2p(event_tx_clone).await;
     });
     while let Some((new_state, effects)) = event_rx.recv().await.map(|event| update(event, state)) {
         state = new_state.clone();

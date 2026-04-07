@@ -13,7 +13,7 @@ use crate::{
 
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
 pub struct Chain {
-    blocks: Vec<Block>,
+    pub blocks: Vec<Block>,
 }
 
 impl Chain {
@@ -80,21 +80,24 @@ impl Chain {
         }
     }
 
-    pub fn add_block(&self, block: Block, generated_now: bool) -> Self {
+    pub fn add_block(&self, block: Block, generated_now: bool) -> (Self, bool) {
         if generated_now && get_beacon(&self.get_beacon_history()) != Some(block.beacon.clone()) {
-            return self.clone();
+            return (self.clone(), false);
         }
         if is_valid_new_block(&block, &self.get_latest_block()) {
-            Self {
-                blocks: self
-                    .blocks
-                    .iter()
-                    .chain(std::iter::once(&block))
-                    .cloned()
-                    .collect(),
-            }
+            (
+                Self {
+                    blocks: self
+                        .blocks
+                        .iter()
+                        .chain(std::iter::once(&block))
+                        .cloned()
+                        .collect(),
+                },
+                true,
+            )
         } else {
-            self.clone()
+            (self.clone(), false)
         }
     }
 
@@ -102,6 +105,14 @@ impl Chain {
         self.blocks.iter().fold((Vec::new(), 1), |acc, block| {
             block.get_unspent_transactions(acc)
         })
+    }
+
+    pub fn find_unspent_transaction(&self, unspent_id: u64) -> Option<UnspentTransaction> {
+        let (unspent_transactions, _) = self.get_unspent_transactions();
+        unspent_transactions
+            .iter()
+            .find(|unspent| unspent.id == unspent_id)
+            .cloned()
     }
 
     pub fn generate_transaction(
