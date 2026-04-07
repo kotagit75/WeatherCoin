@@ -10,7 +10,7 @@ WeatherCoin is a decentralized currency that relies on the randomness of the wea
 ![Rust](https://img.shields.io/badge/Rust-000000?logo=rust&logoColor=white)
 
 ## :sparkles: Features
-- 🌤 Consensus by Weather - Weather data enables rapid consensus building
+- ⛅ Consensus by Weather - Weather data enables rapid consensus building
 - ⚡ Highly energy-efficient - Because VDF is used instead of Proof of Work, it is more energy-efficient
 
 ## How does it work?
