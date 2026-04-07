@@ -39,6 +39,7 @@ Create a shell script named `beacon/temperature.sh`.This script retrieves the la
 temperature=$(curl "https://example.com/api?latitude=$1&longitude=$2")
 exit $(echo "scale=1; $temperature * 10" | bc | sed s/\.[0-9,]*$//g)
 ```
+Even without using an API, it is possible to conduct observations by placing sensors on-site, for example.
 ### Usage
 ```bash
 # run
