@@ -2,7 +2,7 @@ use openssl::error::ErrorStack;
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    blockchain::address::Address,
+    blockchain::address::{Address, is_valid_address},
     util::{key::SK, signature::Signature},
 };
 
@@ -118,7 +118,13 @@ impl Transaction {
     }
 
     pub fn is_valid(&self) -> bool {
-        self.verify_signature() && self.total_amount() > 0
+        self.verify_signature()
+            && self.total_amount() > 0
+            && is_valid_address(&self.sender)
+            && self
+                .out
+                .iter()
+                .all(|txout| is_valid_address(&txout.address))
     }
 }
 
@@ -181,4 +187,8 @@ pub fn is_valid_coinbase_transaction(transaction: &Transaction) -> bool {
         && transaction.un_spent_id == 0
         && transaction.out.len() == 1
         && transaction.out[0].amount == COINBASE_AMOUNT
+        && transaction
+            .out
+            .iter()
+            .all(|txout| is_valid_address(&txout.address))
 }

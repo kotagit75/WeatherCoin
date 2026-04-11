@@ -1,3 +1,5 @@
+extern crate regex;
+
 use tokio::sync::{mpsc, watch};
 
 use crate::update::{run_effect, update};
