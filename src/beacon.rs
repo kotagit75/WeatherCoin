@@ -3,12 +3,12 @@ use std::{env::current_dir, process::Command};
 
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
+#[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 pub struct Beacon {
-    pub value: i32,
+    pub value: f32,
 }
 
-fn get_temperature(lon: f64, lat: f64) -> Option<i32> {
+fn get_temperature(lon: f64, lat: f64) -> Option<f32> {
     match current_dir() {
         Ok(x) => {
             let status = Command::new("beacon/temperature.sh")
@@ -16,7 +16,10 @@ fn get_temperature(lon: f64, lat: f64) -> Option<i32> {
                 .arg(lon.to_string())
                 .current_dir(x)
                 .status();
-            status.ok().and_then(|status| status.code())
+            status
+                .ok()
+                .and_then(|status| status.code())
+                .map(|code| code as f32 / 10.0)
         }
         Err(_) => None,
     }
@@ -37,12 +40,19 @@ pub fn get_beacon(history: &[Beacon]) -> Option<Beacon> {
         })
         .flatten()
         .collect();
-    let sum: i32 = locations
+    let sum: f32 = locations
         .iter()
         .map(|pos| get_temperature(pos[0], pos[1]))
         .flatten()
         .sum();
     Some(Beacon {
-        value: sum + history.iter().map(|b| b.value).sum::<i32>(),
+        value: sum + history.iter().map(|b| b.value).sum::<f32>(),
     })
+}
+
+pub fn is_valid_beacon(target_beacon: &Beacon, history: &[Beacon]) -> bool {
+    match get_beacon(history) {
+        Some(beacon) => (beacon.value - target_beacon.value).abs() <= 0.5,
+        None => false,
+    }
 }

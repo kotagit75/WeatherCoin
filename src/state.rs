@@ -7,7 +7,7 @@ use crate::{
     util::key::SK,
 };
 
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct State {
     pub secret_key: SK,
     pub address: Address,

@@ -2,7 +2,7 @@ use openssl::error::ErrorStack;
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    beacon::{Beacon, get_beacon},
+    beacon::{Beacon, is_valid_beacon},
     blockchain::{
         address::Address,
         block::{Block, genesis_block, solve_block_vdf},
@@ -11,7 +11,7 @@ use crate::{
     util::key::SK,
 };
 
-#[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
+#[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 pub struct Chain {
     pub blocks: Vec<Block>,
 }
@@ -81,7 +81,7 @@ impl Chain {
     }
 
     pub fn add_block(&self, block: Block, generated_now: bool) -> (Self, bool) {
-        if generated_now && get_beacon(&self.get_beacon_history()) != Some(block.beacon.clone()) {
+        if generated_now && !is_valid_beacon(&block.beacon, &self.get_beacon_history()) {
             return (self.clone(), false);
         }
         if is_valid_new_block(&block, &self.get_latest_block()) {

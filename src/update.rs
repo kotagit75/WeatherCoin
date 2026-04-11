@@ -14,7 +14,7 @@ use crate::{
 use serde::{Deserialize, Serialize};
 use tokio::sync::mpsc;
 
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub enum Event {
     AddPeer(Peer),
     AddTransaction(Address, u64),
@@ -22,7 +22,7 @@ pub enum Event {
     CompletedMineBlock(Block),
     P2PMessage(P2PMessage),
 }
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub enum Effect {
     MineBlock(Vec<Transaction>),
     BroadcastQueryAll,

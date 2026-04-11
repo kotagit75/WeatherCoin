@@ -16,7 +16,7 @@ use crate::{
     },
 };
 
-#[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
+#[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 pub struct Block {
     pub index: u64,
     pub timestamp: i64,
@@ -219,7 +219,7 @@ pub fn genesis_block() -> Block {
         0,
         0,
         Vec::new(),
-        Beacon { value: 0 },
+        Beacon { value: 0.0 },
         Vec::new(),
         &pk,
         [

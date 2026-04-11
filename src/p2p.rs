@@ -19,7 +19,7 @@ pub async fn init_p2p(event_tx: mpsc::Sender<Event>) {
     axum::serve(listener, app).await.unwrap();
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub enum P2PMessage {
     QueryLatest,
     QueryAll,
