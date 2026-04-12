@@ -3,6 +3,8 @@ use std::{env::current_dir, process::Command};
 
 use serde::{Deserialize, Serialize};
 
+use crate::util::hash::Hashed;
+
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 pub struct Beacon {
     pub value: f32,
@@ -25,9 +27,9 @@ fn get_temperature(lon: f64, lat: f64) -> Option<f32> {
     }
 }
 
-pub fn get_beacon(history: &[Beacon]) -> Option<Beacon> {
+fn calc_locations(lastest_block_hash: &Hashed) -> Vec<geojson::Position> {
     let Ok(collection) = include_str!("beacon/target.geojson").parse::<FeatureCollection>() else {
-        return None;
+        return Vec::new();
     };
     let locations: Vec<geojson::Position> = collection
         .features
@@ -40,6 +42,18 @@ pub fn get_beacon(history: &[Beacon]) -> Option<Beacon> {
         })
         .flatten()
         .collect();
+    let len = locations.len();
+    lastest_block_hash
+        .iter()
+        .map(|i| (*i as usize) % len)
+        .map(|i| locations.get(i))
+        .flatten()
+        .cloned()
+        .collect()
+}
+
+pub fn get_beacon(history: &[Beacon], lastest_block_hash: &Hashed) -> Option<Beacon> {
+    let locations: Vec<geojson::Position> = calc_locations(lastest_block_hash);
     let sum: f32 = locations
         .iter()
         .map(|pos| get_temperature(pos[0], pos[1]))
@@ -50,8 +64,12 @@ pub fn get_beacon(history: &[Beacon]) -> Option<Beacon> {
     })
 }
 
-pub fn is_valid_beacon(target_beacon: &Beacon, history: &[Beacon]) -> bool {
-    match get_beacon(history) {
+pub fn is_valid_beacon(
+    target_beacon: &Beacon,
+    history: &[Beacon],
+    lastest_block_hash: &Hashed,
+) -> bool {
+    match get_beacon(history, lastest_block_hash) {
         Some(beacon) => (beacon.value - target_beacon.value).abs() <= 0.5,
         None => false,
     }

@@ -175,7 +175,10 @@ pub fn update(event: Event, state: State) -> (State, Vec<Effect>) {
 pub async fn run_effect(state: State, event_tx: mpsc::Sender<Event>, effect: Effect) {
     match effect {
         Effect::MineBlock(transactions) => {
-            let Some(beacon) = get_beacon(&state.chain.get_beacon_history()) else {
+            let Some(beacon) = get_beacon(
+                &state.chain.get_beacon_history(),
+                &state.chain.get_latest_block().hash,
+            ) else {
                 return;
             };
             let Ok(event) = state
