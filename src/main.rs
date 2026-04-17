@@ -16,12 +16,14 @@ pub mod util;
 #[tokio::main]
 async fn main() {
     let Ok(sk) = node::load_key() else {
+        println!("failed to load node key");
         return;
     };
     let Ok(mut state) = state::State::new(sk) else {
+        println!("failed to initialize state");
         return;
     };
-    println!("address: {:?}", state.address);
+    println!("address: {:?}", state.address.der);
 
     let (event_tx, mut event_rx) = mpsc::channel(256);
     let (state_tx, state_rx) = watch::channel(state.clone());
