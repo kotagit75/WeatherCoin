@@ -37,6 +37,7 @@ async fn main() {
     tokio::spawn(async move {
         p2p::init_p2p(event_tx_clone).await;
     });
+
     while let Some((new_state, effects)) = event_rx.recv().await.map(|event| update(event, state)) {
         state = new_state.clone();
         let _ = state_tx.send(state.clone());
