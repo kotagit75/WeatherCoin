@@ -6,15 +6,31 @@ use crate::util::key::{SK, generate_pk_and_sk};
 
 const NODE_KEY_BITS: u32 = 512;
 
+const NODE_DIR_PATH: &str = "node";
 const NODE_KEY_PATH: &str = "node/key.der";
 
 pub fn load_key() -> Result<SK, ()> {
+    if std::fs::metadata(NODE_DIR_PATH).is_err() {
+        println!("creating node directory");
+        std::fs::create_dir(NODE_DIR_PATH).map_err(|_| {
+            println!("failed to create node directory");
+            ()
+        })?;
+    }
     if std::fs::metadata(NODE_KEY_PATH).is_ok() {
-        read_key().map_err(|_| ())
+        println!("reading node key");
+        read_key().map_err(|_| {
+            println!("failed to read node key");
+            ()
+        })
     } else {
+        println!("generating node key");
         match generate_pk_and_sk(NODE_KEY_BITS) {
             Ok((_, sk)) => {
-                save_key(&sk).map_err(|_| ())?;
+                save_key(&sk).map_err(|_| {
+                    println!("failed to save node key");
+                    ()
+                })?;
                 Ok(sk)
             }
             Err(_) => Err(()),
