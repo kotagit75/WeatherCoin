@@ -331,6 +331,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "dawn"
+version = "0.1.0"
+dependencies = [
+ "axum",
+ "chrono",
+ "geojson",
+ "hex",
+ "openssl",
+ "regex",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "sha2 0.11.0",
+ "tokio",
+ "vdf",
+]
+
+[[package]]
 name = "digest"
 version = "0.8.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2150,24 +2168,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "39129a682a6d2d841b6c429d0c51e5cb0ed1a03829d8b3d1e69a011e62cb3d3b"
 dependencies = [
  "unicode-ident",
-]
-
-[[package]]
-name = "weather-coin"
-version = "0.1.0"
-dependencies = [
- "axum",
- "chrono",
- "geojson",
- "hex",
- "openssl",
- "regex",
- "reqwest",
- "serde",
- "serde_json",
- "sha2 0.11.0",
- "tokio",
- "vdf",
 ]
 
 [[package]]
