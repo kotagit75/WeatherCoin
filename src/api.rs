@@ -1,17 +1,20 @@
 use axum::{
-    Router, extract, response,
+    Router,
+    extract::{self, Path},
+    response,
     routing::{get, post},
 };
 use serde::{Deserialize, Serialize};
 use tokio::sync::{mpsc, watch};
 
-use crate::{p2p::Peer, state::State, update::Event, util::key::PK};
+use crate::{blockchain::address::Address, p2p::Peer, state::State, update::Event, util::key::PK};
 
 const API_PORT: u32 = 8080;
 pub async fn init_api(event_tx: mpsc::Sender<Event>, state_rx: watch::Receiver<State>) {
     let app = Router::new()
         .route("/state", get(handle_get_state))
         .route("/balance", get(handle_get_balance))
+        .route("/balance/{address}", get(handle_get_balance_with_address))
         .route("/tx", post(handle_post_transaction))
         .route("/mine", post(handle_post_mine))
         .route("/peer", post(handle_post_peer))
@@ -33,6 +36,14 @@ async fn handle_get_balance(
 ) -> response::Json<u64> {
     let state = state_rx.borrow().clone();
     response::Json(state.chain.get_balance(&state.address))
+}
+
+async fn handle_get_balance_with_address(
+    extract::State((_, state_rx)): extract::State<(mpsc::Sender<Event>, watch::Receiver<State>)>,
+    Path(address): Path<String>,
+) -> response::Json<u64> {
+    let state = state_rx.borrow().clone();
+    response::Json(state.chain.get_balance(&Address { der: address }))
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
