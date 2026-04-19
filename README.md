@@ -76,6 +76,9 @@ Dawn gets temperature data from multiple regions. The regions are as follows:
 - Hiroshima `132.4553055555556, 34.38528888888889`
 - Fukuoka `130.4016888888889, 33.59018333333334`
 - Kagoshima `130.55, 31.5667`
+
+[View geojson](src/beacon/target.geojson)
+
 ```geojson
 {
   "type": "FeatureCollection",
