@@ -1,4 +1,5 @@
 <div align="center">
+    <img src="./assets/bg.jpg" width="50%" />
     <h1>Dawn</h1>
 </div>
 
