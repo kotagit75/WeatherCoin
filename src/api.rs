@@ -23,7 +23,7 @@ pub async fn init_api(event_tx: mpsc::Sender<Event>, state_rx: watch::Receiver<S
         .route("/peer", post(handle_post_peer))
         .with_state((event_tx, state_rx));
     let listener = tokio::net::TcpListener::bind(SocketAddr::new(
-        std::net::IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0)),
+        std::net::IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)),
         API_PORT,
     ))
     .await
