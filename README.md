@@ -46,7 +46,7 @@ Even without using an API, it is possible to conduct observations by placing sen
 ### Usage
 ```bash
 # run
-./target/release/weather-coin
+./target/release/dawn
 
 # get state
 curl localhost:8080/state
