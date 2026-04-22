@@ -1,36 +1,27 @@
 use geojson::{FeatureCollection, GeometryValue};
-use std::{env::current_dir, process::Command};
+use std::process::Command;
 
 use serde::{Deserialize, Serialize};
 
-use crate::util::hash::Hashed;
+use crate::util::{command::run_command_and_get_exit_code, hash::Hashed};
 
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 pub struct Beacon {
     pub value: f32,
 }
 
-fn run_command_and_get_exit_code(command: &mut Command) -> Option<i32> {
-    match current_dir() {
-        Ok(x) => {
-            let status = command.current_dir(x).status();
-            status.ok().and_then(|status| status.code())
-        }
-        Err(_) => None,
-    }
-}
+const TEMPERATURE_SCRIPT_PATH: &str = "beacon/temperature.sh";
+const TARGET_GEOJSON: &str = include_str!("beacon/target.geojson");
 
 fn get_temperature(lon: f64, lat: f64) -> Option<f32> {
     let code = run_command_and_get_exit_code(
-        Command::new("beacon/temperature.sh")
-            .arg(lat.to_string())
-            .arg(lon.to_string()),
+        Command::new(TEMPERATURE_SCRIPT_PATH).args([lat.to_string(), lon.to_string()]),
     );
     code.map(|code| code as f32 / 10.0)
 }
 
 fn calc_locations(lastest_block_hash: &Hashed) -> Vec<geojson::Position> {
-    let Ok(collection) = include_str!("beacon/target.geojson").parse::<FeatureCollection>() else {
+    let Ok(collection) = TARGET_GEOJSON.parse::<FeatureCollection>() else {
         return Vec::new();
     };
     let locations: Vec<geojson::Position> = collection
