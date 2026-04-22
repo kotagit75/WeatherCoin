@@ -24,7 +24,7 @@ pub async fn init_api(event_tx: mpsc::Sender<Event>, state_rx: watch::Receiver<S
         .with_state((event_tx, state_rx));
     let addr = SocketAddr::new(std::net::IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), API_PORT);
     let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
-    info!("API server is running on http://{}", addr);
+    info!("API server is running on http://{}/", addr);
     axum::serve(listener, app).await.unwrap();
 }
 
