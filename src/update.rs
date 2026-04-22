@@ -33,6 +33,7 @@ pub enum Effect {
 pub fn update(event: Event, state: State) -> (State, Vec<Effect>) {
     match event {
         Event::AddPeer(peer) => {
+            info!("added peer: {}", peer.ip);
             let new_peers: Vec<Peer> = state.peers.into_iter().chain([peer]).collect();
             return (
                 State {
@@ -77,6 +78,7 @@ pub fn update(event: Event, state: State) -> (State, Vec<Effect>) {
             );
         }
         Event::CompletedMineBlock(new_block) => {
+            info!("completed mining block");
             let (chain, changed) = state.chain.add_block(new_block.clone(), true);
             let new_state = State {
                 chain,
@@ -175,6 +177,7 @@ pub fn update(event: Event, state: State) -> (State, Vec<Effect>) {
 pub async fn run_effect(state: State, event_tx: mpsc::Sender<Event>, effect: Effect) {
     match effect {
         Effect::MineBlock(transactions) => {
+            info!("start mining block");
             let Some(beacon) = get_beacon(
                 &state.chain.get_beacon_history(),
                 &state.chain.get_latest_block().hash,
