@@ -1,7 +1,4 @@
-use std::{
-    net::{Ipv4Addr, SocketAddr},
-    str::FromStr,
-};
+use std::net::{Ipv4Addr, SocketAddr};
 
 use axum::{Router, extract, response, routing::post};
 use serde::{Deserialize, Serialize};
@@ -41,14 +38,17 @@ async fn handle_post_message(
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Peer {
-    pub ip: String,
+    pub ip: Ipv4Addr,
 }
 impl Peer {
-    pub fn new(ip: String) -> Self {
+    pub fn new(ip: Ipv4Addr) -> Self {
         Self { ip }
     }
     pub fn get_url(&self) -> String {
-        format!("http://{}:{}/", self.ip, P2P_PORT)
+        format!(
+            "http://{}/",
+            SocketAddr::new(std::net::IpAddr::V4(self.ip), P2P_PORT)
+        )
     }
     pub async fn write(&self, message: &P2PMessage) {
         let _ = reqwest::Client::new()
