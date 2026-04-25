@@ -1,6 +1,5 @@
 <div align="center">
-    <img src="assets/logo.svg" width=200 height=200>
-    <h1>Dawn</h1>
+    <img src="assets/logo_with_name.svg" height=200>
 </div>
 
 Dawn is a decentralized currency that relies on the randomness of the weather and cryptographic proofs as its foundation.
