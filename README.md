@@ -65,15 +65,15 @@ curl -X POST -H "Content-Type: application/json" -d '{"ip":"{IP Addr}"}' localho
 ## 📍 Locations which is collected temperature data
 Dawn gets temperature data from multiple regions. The regions are as follows:
 - Hakodate `140.7290611111111, 41.76869722222222`
-- Hirosaki `140.4845583333333, 40.599217`
+- Hirosaki `140.421492, 40.61632`
 - Sendai `140.8694166666667, 38.26819444444445`
-- Yokohama `139.6379638888889, 35.443675`
+- Yokohama `139.63438781464149, 35.45023396820895`
 - Nagoya `136.9065583333334, 35.18145`
 - Kyoto `135.76815, 35.01156388888889`
 - Kobe `135.1956305555556, 34.69008055555555`
 - Hiroshima `132.4553055555556, 34.38528888888889`
 - Fukuoka `130.4016888888889, 33.59018333333334`
-- Kagoshima `130.55, 31.5667`
+- Kagoshima `130.5571231843784, 31.596708556139077`
 
 [View geojson](src/beacon/target.geojson)
 

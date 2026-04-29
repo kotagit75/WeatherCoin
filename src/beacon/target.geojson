@@ -45,7 +45,7 @@
       "type": "Feature",
       "geometry": {
         "type": "Point",
-        "coordinates": [139.637964, 35.443675, 0]
+        "coordinates": [139.63438781464149, 35.45023396820895, 0]
       },
       "properties": {
         "styleUrl": "#msn_icon?color=fbc02d&id=2000&scale=40",
@@ -165,7 +165,7 @@
       "type": "Feature",
       "geometry": {
         "type": "Point",
-        "coordinates": [140.484558, 40.599217, 0]
+        "coordinates": [140.421492, 40.61632, 0]
       },
       "properties": {
         "styleUrl": "#msn_icon?color=fbc02d&id=2000&scale=400",
@@ -183,7 +183,10 @@
     },
     {
       "type": "Feature",
-      "geometry": { "type": "Point", "coordinates": [130.55, 31.5667, 0] },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [130.5571231843784, 31.596708556139077, 0]
+      },
       "properties": {
         "styleUrl": "#msn_icon?color=fbc02d&id=2000&scale=400",
         "fill-opacity": 0.25098039215686274,
