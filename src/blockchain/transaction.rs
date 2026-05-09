@@ -96,7 +96,7 @@ impl Transaction {
     }
     pub fn verify_signature(&self) -> bool {
         self.sender.clone().verify(
-            transacction_to_buf_for_signature(&self.sender, &self.out, self.tx_in.clone())
+            transaction_to_buf_for_signature(&self.sender, &self.out, self.tx_in.clone())
                 .as_slice(),
             &self.signature,
         )
@@ -138,7 +138,7 @@ impl Transaction {
     }
 }
 
-fn transacction_to_buf_for_signature(
+fn transaction_to_buf_for_signature(
     sender: &Address,
     out: &[TransactionOut],
     tx_in: Vec<TransactionIn>,
@@ -152,7 +152,7 @@ fn create_transaction_signature(
     tx_in: Vec<TransactionIn>,
     sk: &SK,
 ) -> Result<Signature, ErrorStack> {
-    let data = transacction_to_buf_for_signature(sender, out, tx_in);
+    let data = transaction_to_buf_for_signature(sender, out, tx_in);
     sk.sign(&data)
 }
 
