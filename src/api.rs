@@ -32,6 +32,7 @@ pub async fn init_api(event_tx: mpsc::Sender<Event>, state_rx: watch::Receiver<S
         .route("/address", get(handle_get_address))
         .route("/balance", get(handle_get_balance))
         .route("/balance/{address}", get(handle_get_balance_with_address))
+        .route("/latest-beacon", get(handle_get_latest_beacon))
         .route("/tx", post(handle_post_transaction))
         .route("/peer", post(handle_post_peer))
         .with_state((event_tx, state_rx))
@@ -67,6 +68,13 @@ async fn handle_get_balance_with_address(
 ) -> response::Json<u64> {
     let state = state_rx.borrow().clone();
     response::Json(state.chain.get_balance(&Address { der: address }))
+}
+
+async fn handle_get_latest_beacon(
+    extract::State((_, state_rx)): extract::State<(mpsc::Sender<Event>, watch::Receiver<State>)>,
+) -> response::Json<f32> {
+    let state = state_rx.borrow().clone();
+    response::Json(state.chain.get_latest_block().beacon.value)
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
