@@ -50,11 +50,13 @@ fn choose_locations(lastest_block_hash: &Hashed) -> Vec<geojson::Position> {
 
 pub fn get_beacon(history: &[Beacon], lastest_block_hash: &Hashed) -> Option<Beacon> {
     let locations: Vec<geojson::Position> = choose_locations(lastest_block_hash);
+    info!("start getting beacon");
     let sum: f32 = locations
         .iter()
         .map(|pos| get_temperature(pos[0], pos[1]))
         .flatten()
         .sum();
+    info!("completed getting beacon");
     Some(Beacon {
         value: sum + history.iter().map(|b| b.value).sum::<f32>(),
     })
