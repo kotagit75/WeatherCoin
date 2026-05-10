@@ -5,7 +5,7 @@ use crate::{
     beacon::{Beacon, is_valid_beacon},
     blockchain::{
         address::Address,
-        block::{Block, genesis_block, solve_block_vdf},
+        block::{Block, BlockData, genesis_block, solve_block_vdf},
         transaction::{
             Transaction, TransactionIn, UnspentTransaction, flex_unspent_transactions,
             get_transaction_out,
@@ -43,14 +43,14 @@ impl Chain {
         let previous_block: Block = self.get_latest_block();
         let next_index: u64 = previous_block.index + 1;
         let next_timestamp: i64 = chrono::Utc::now().timestamp_millis();
-        let vdf_solution = solve_block_vdf(
+        let vdf_solution = solve_block_vdf(&BlockData::new(
             next_index,
             next_timestamp,
             &transactions,
-            beacon.clone(),
-            issuer,
-            previous_block.hash,
-        )
+            &beacon,
+            &issuer,
+            previous_block.hash.clone(),
+        ))
         .unwrap();
         Block::new_with_creating_signature(
             next_index,
