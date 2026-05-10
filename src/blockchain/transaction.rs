@@ -143,7 +143,9 @@ fn transaction_to_buf_for_signature(
     out: &[TransactionOut],
     tx_in: &[TransactionIn],
 ) -> Vec<u8> {
-    format!("{sender}{out:?}{tx_in:?}").as_bytes().to_vec()
+    format!("{}{:?}{:?}", sender, out, tx_in)
+        .as_bytes()
+        .to_vec()
 }
 
 fn create_transaction_signature(
@@ -176,9 +178,7 @@ pub fn get_transaction_out(
 
 const COINBASE_AMOUNT: u64 = 50;
 fn coinbase_address() -> Address {
-    Address {
-        der: "".to_string(),
-    }
+    Address { der: String::new() }
 }
 pub fn coinbase_transaction(address: &Address) -> Transaction {
     Transaction {
