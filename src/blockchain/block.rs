@@ -193,11 +193,13 @@ impl<'a> Display for BlockData<'a> {
 }
 
 pub fn calculate_hash(blockdata: &BlockData, vdf_solution: &[u8], signature: Signature) -> Hashed {
-    hash(format!("{blockdata}{vdf_solution:?}{signature:?}").as_bytes())
+    hash(format!("{}{:?}{:?}", blockdata, vdf_solution, signature).as_bytes())
 }
 
 fn block_to_buf_for_signature(blockdata: &BlockData, vdf_solution: &[u8]) -> Vec<u8> {
-    format!("{blockdata}{vdf_solution:?}").as_bytes().to_vec()
+    format!("{}{:?}", blockdata, vdf_solution)
+        .as_bytes()
+        .to_vec()
 }
 
 fn create_block_signature(
