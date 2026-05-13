@@ -9,7 +9,7 @@ const NODE_KEY_BITS: u32 = 512;
 const NODE_DIR_PATH: &str = "node";
 const NODE_KEY_PATH: &str = "node/key.der";
 
-pub fn load_key() -> Result<SK, ()> {
+pub fn load_or_generate_key() -> Result<SK, ()> {
     if std::fs::metadata(NODE_DIR_PATH).is_err() {
         info!("creating node directory");
         std::fs::create_dir(NODE_DIR_PATH).map_err(|_| {

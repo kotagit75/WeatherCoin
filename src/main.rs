@@ -24,7 +24,7 @@ async fn main() {
     logger::init_with_level(Level::Info).unwrap();
 
     info!("loading node key");
-    let Ok(sk) = node::load_key() else {
+    let Ok(sk) = node::load_or_generate_key() else {
         error!("failed to load node key");
         return;
     };
