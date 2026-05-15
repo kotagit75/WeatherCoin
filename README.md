@@ -74,7 +74,7 @@ curl -X POST -H "Content-Type: application/json" -d '{"ip":"{IP Addr}"}' localho
 ## 📍 Locations which is collected temperature data
 Dawn gets temperature data from multiple locations. The locations are as follows:
 
-|Name|Lat|Lon|
+|Name|Latitude|Longitude|
 |:-:|:-:|:-:|
 |Wakkanai Airport|45.3995654|141.7974528|
 |Asahikawa Airport|43.67147493|142.446865|
