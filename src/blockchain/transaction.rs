@@ -176,27 +176,36 @@ pub fn get_transaction_out(
     ]
 }
 
-const COINBASE_AMOUNT: u64 = 50;
+/*
+ * COINBASE_AMOUNT_HALVING_INTERVAL and INITIAL_COINBASE_AMOUNT are subject to change in the future.
+ */
+const COINBASE_AMOUNT_HALVING_INTERVAL: u64 = 210000;
+const INITIAL_COINBASE_AMOUNT: u64 = 50;
+fn coinbase_amount(block_height: u64) -> u64 {
+    let halvings: u64 = block_height / COINBASE_AMOUNT_HALVING_INTERVAL;
+    INITIAL_COINBASE_AMOUNT >> halvings
+}
+
 fn coinbase_address() -> Address {
     Address { der: String::new() }
 }
-pub fn coinbase_transaction(address: &Address) -> Transaction {
+pub fn coinbase_transaction(address: &Address, block_height: u64) -> Transaction {
     Transaction {
         sender: coinbase_address(),
         out: vec![TransactionOut {
             address: address.clone(),
-            amount: COINBASE_AMOUNT,
+            amount: coinbase_amount(block_height),
         }],
         tx_in: Vec::new(),
         signature: Signature::default(),
     }
 }
 
-pub fn is_valid_coinbase_transaction(transaction: &Transaction) -> bool {
+pub fn is_valid_coinbase_transaction(transaction: &Transaction, block_height: u64) -> bool {
     transaction.sender == coinbase_address()
         && transaction.tx_in.len() == 0
         && transaction.out.len() == 1
-        && transaction.out[0].amount == COINBASE_AMOUNT
+        && transaction.out[0].amount == coinbase_amount(block_height)
         && transaction
             .out
             .iter()
@@ -352,16 +361,18 @@ mod tests {
     #[test]
     fn coinbase_transaction_is_valid() {
         let (miner, _) = keypair();
-        let tx = coinbase_transaction(&miner);
-        assert!(is_valid_coinbase_transaction(&tx));
+        let block_height = 1;
+        let tx = coinbase_transaction(&miner, block_height);
+        assert!(is_valid_coinbase_transaction(&tx, block_height));
     }
 
     #[test]
     fn coinbase_transaction_invalid_when_amount_changed() {
         let (miner, _) = keypair();
-        let mut tx = coinbase_transaction(&miner);
+        let block_height = 1;
+        let mut tx = coinbase_transaction(&miner, block_height);
         tx.out[0].amount = 999;
-        assert!(!is_valid_coinbase_transaction(&tx));
+        assert!(!is_valid_coinbase_transaction(&tx, block_height));
     }
 
     #[test]

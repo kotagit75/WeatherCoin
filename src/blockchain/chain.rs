@@ -7,8 +7,8 @@ use crate::{
         address::Address,
         block::{Block, BlockData, genesis_block, solve_block_vdf},
         transaction::{
-            Transaction, TransactionIn, UnspentTransaction, flex_unspent_transactions,
-            get_transaction_out,
+            Transaction, TransactionIn, UnspentTransaction, coinbase_transaction,
+            flex_unspent_transactions, get_transaction_out,
         },
     },
     util::key::SK,
@@ -38,11 +38,16 @@ impl Chain {
         sk: &SK,
         issuer: &Address,
         beacon: Beacon,
-        transactions: Vec<Transaction>,
+        transactions_without_coinbase: Vec<Transaction>,
     ) -> Result<Block, ErrorStack> {
         let previous_block: Block = self.get_latest_block();
         let next_index: u64 = previous_block.index + 1;
         let next_timestamp: i64 = chrono::Utc::now().timestamp_millis();
+        let transactions = [coinbase_transaction(issuer, next_index)]
+            .iter()
+            .chain(&transactions_without_coinbase)
+            .cloned()
+            .collect::<Vec<Transaction>>();
         let vdf_solution = solve_block_vdf(&BlockData::new(
             next_index,
             next_timestamp,
@@ -217,7 +222,7 @@ mod tests {
 
     fn chain_with_coinbase(miner: &Address) -> Chain {
         let g = genesis_block();
-        let b1 = dummy_block(&g, vec![coinbase_transaction(miner)], 1.0);
+        let b1 = dummy_block(&g, vec![coinbase_transaction(miner, 1)], 1.0);
         Chain {
             blocks: vec![g, b1],
         }
@@ -292,8 +297,8 @@ mod tests {
         let (b, _) = keypair();
 
         let g = genesis_block();
-        let b1 = dummy_block(&g, vec![coinbase_transaction(&a)], 1.0);
-        let b2 = dummy_block(&b1, vec![coinbase_transaction(&b)], 2.0);
+        let b1 = dummy_block(&g, vec![coinbase_transaction(&a, 0)], 1.0);
+        let b2 = dummy_block(&b1, vec![coinbase_transaction(&b, 1)], 2.0);
         let c = Chain {
             blocks: vec![g, b1, b2],
         };

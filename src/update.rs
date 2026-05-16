@@ -6,7 +6,7 @@ use crate::{
         address::{Address, is_valid_address},
         block::Block,
         chain::Chain,
-        transaction::{Transaction, coinbase_transaction},
+        transaction::Transaction,
     },
     p2p::{P2PMessage, Peer, broadcast},
     state::State,
@@ -70,18 +70,12 @@ pub fn update(event: Event, state: State) -> (State, Effect) {
             }
         }
         Event::MineBlock => {
-            let coinbase = coinbase_transaction(&state.address);
-            let blocks_for_mine: Vec<Transaction> = [coinbase]
-                .iter()
-                .chain(&state.transactions)
-                .cloned()
-                .collect();
             return (
                 State {
                     transactions: Vec::new(),
                     ..state
                 },
-                Effect::MineBlock(blocks_for_mine),
+                Effect::MineBlock(state.transactions),
             );
         }
         Event::CompletedMineBlock(new_block) => {
@@ -213,7 +207,7 @@ mod tests {
         blockchain::{
             block::{Block, genesis_block},
             chain::Chain,
-            transaction::{coinbase_transaction, is_valid_coinbase_transaction},
+            transaction::coinbase_transaction,
         },
         state::State,
         util::key::{SK, generate_pk_and_sk},
@@ -229,7 +223,7 @@ mod tests {
         Block {
             index: prev.index + 1,
             timestamp: prev.timestamp + 1,
-            transactions: vec![coinbase_transaction(miner)],
+            transactions: vec![coinbase_transaction(miner, prev.index + 1)],
             beacon: Beacon { values: Vec::new() },
             vdf_solution: vec![],
             previous_hash: prev.hash,
@@ -304,8 +298,7 @@ mod tests {
         assert!(next.transactions.is_empty());
         match effect {
             Effect::MineBlock(txs) => {
-                assert_eq!(txs.len(), 2);
-                assert!(is_valid_coinbase_transaction(&txs[0]));
+                assert_eq!(txs.len(), 1);
             }
             _ => panic!("expected MineBlock effect"),
         }
