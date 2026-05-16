@@ -112,11 +112,14 @@ impl Block {
     }
 
     pub fn is_valid(&self) -> bool {
-        let (coinbase, normal) = self.transactions.split_at(1);
-        self.verify_signature()
-            && self.verify_vdf_solution()
-            && is_valid_coinbase_transaction(&coinbase[0])
-            && normal.iter().all(|t| t.is_valid())
+        if let Some((coinbase, normal)) = self.transactions.split_first() {
+            self.verify_signature()
+                && self.verify_vdf_solution()
+                && is_valid_coinbase_transaction(coinbase)
+                && normal.iter().all(|t| t.is_valid())
+        } else {
+            false
+        }
     }
 
     fn to_blockdata(&self) -> BlockData<'_> {
