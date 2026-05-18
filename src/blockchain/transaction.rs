@@ -21,6 +21,7 @@ pub struct Transaction {
     pub sender: Address,
     pub out: Vec<TransactionOut>,
     pub tx_in: Vec<TransactionIn>,
+    pub fee: u64,
     pub signature: Signature,
 }
 
@@ -81,12 +82,14 @@ impl Transaction {
         sender: Address,
         out: Vec<TransactionOut>,
         tx_in: Vec<TransactionIn>,
+        fee: u64,
         signature: Signature,
     ) -> Self {
         Self {
             sender,
             out,
             tx_in,
+            fee,
             signature,
         }
     }
@@ -94,19 +97,22 @@ impl Transaction {
         sender: &Address,
         out: Vec<TransactionOut>,
         tx_in: Vec<TransactionIn>,
+        fee: u64,
         sk: &SK,
     ) -> Result<Self, ErrorStack> {
-        let signature = create_transaction_signature(sender, &out, &tx_in, sk)?;
+        let signature = create_transaction_signature(sender, &out, &tx_in, fee, sk)?;
         Ok(Self {
             sender: sender.clone(),
             out,
             tx_in,
+            fee,
             signature,
         })
     }
     pub fn verify_signature(&self) -> bool {
         self.sender.verify(
-            transaction_to_buf_for_signature(&self.sender, &self.out, &self.tx_in).as_slice(),
+            transaction_to_buf_for_signature(&self.sender, &self.out, &self.tx_in, self.fee)
+                .as_slice(),
             &self.signature,
         )
     }
@@ -115,7 +121,7 @@ impl Transaction {
      * This method calculates the total amount of the transaction output.
      */
     pub fn total_amount(&self) -> u64 {
-        self.out.iter().map(|txout| txout.amount).sum()
+        self.fee + self.out.iter().map(|txout| txout.amount).sum::<u64>()
     }
 
     /*
@@ -126,7 +132,7 @@ impl Transaction {
             .iter()
             .map(|tx_in| tx_in.get_amount(unspent_transactions))
             .flatten()
-            .sum()
+            .sum::<u64>()
     }
 
     pub fn get_unspent_transactions(
@@ -150,6 +156,26 @@ impl Transaction {
         (new_unspent, new_id)
     }
 
+    pub fn fee_to_unspent_transaction(
+        &self,
+        miner: Address,
+        (previous_unspent, first_id): (Vec<UnspentTransaction>, u64),
+    ) -> (Vec<UnspentTransaction>, u64) {
+        let fee_unspent = UnspentTransaction {
+            id: first_id,
+            address: miner,
+            amount: self.fee,
+        };
+        (
+            previous_unspent
+                .iter()
+                .chain([fee_unspent].iter())
+                .cloned()
+                .collect(),
+            first_id + 1,
+        )
+    }
+
     pub fn is_valid(&self, unspent_transactions: &[UnspentTransaction]) -> bool {
         self.verify_signature()
             && self.total_amount() > 0
@@ -170,8 +196,9 @@ fn transaction_to_buf_for_signature(
     sender: &Address,
     out: &[TransactionOut],
     tx_in: &[TransactionIn],
+    fee: u64,
 ) -> Vec<u8> {
-    format!("{}{:?}{:?}", sender, out, tx_in)
+    format!("{}{:?}{:?}{}", sender, out, tx_in, fee)
         .as_bytes()
         .to_vec()
 }
@@ -180,26 +207,28 @@ fn create_transaction_signature(
     sender: &Address,
     out: &[TransactionOut],
     tx_in: &[TransactionIn],
+    fee: u64,
     sk: &SK,
 ) -> Result<Signature, ErrorStack> {
-    let data = transaction_to_buf_for_signature(sender, out, tx_in);
+    let data = transaction_to_buf_for_signature(sender, out, tx_in, fee);
     sk.sign(&data)
 }
 
 pub fn get_transaction_out(
     sender: &Address,
     recipient: &Address,
-    amount: u64,
+    send_amount: u64,
+    fee: u64,
     unspent_amount: u64,
 ) -> Vec<TransactionOut> {
     vec![
         TransactionOut {
             address: recipient.clone(),
-            amount,
+            amount: send_amount,
         },
         TransactionOut {
             address: sender.clone(),
-            amount: unspent_amount - amount,
+            amount: unspent_amount - send_amount - fee,
         },
     ]
 }
@@ -225,6 +254,7 @@ pub fn coinbase_transaction(address: &Address, block_height: u64) -> Transaction
             amount: coinbase_amount(block_height),
         }],
         tx_in: Vec::new(),
+        fee: 0,
         signature: Signature::default(),
     }
 }
@@ -287,6 +317,7 @@ mod tests {
                 amount: 10,
             }],
             vec![TransactionIn { unspent_id: 1 }],
+            0,
             &sk,
         )
         .unwrap();
@@ -313,6 +344,7 @@ mod tests {
                 amount: 10,
             }],
             vec![TransactionIn { unspent_id: 1 }],
+            0,
             &sk,
         )
         .unwrap();
@@ -347,11 +379,12 @@ mod tests {
                 },
             ],
             vec![TransactionIn { unspent_id: 1 }],
+            3,
             &sk,
         )
         .unwrap();
 
-        assert_eq!(tx.total_amount(), 20);
+        assert_eq!(tx.total_amount(), 23);
     }
 
     #[test]
@@ -372,6 +405,7 @@ mod tests {
                 },
             ],
             vec![TransactionIn { unspent_id: 1 }],
+            0,
             &sk,
         )
         .unwrap();
@@ -420,13 +454,13 @@ mod tests {
         let (sender, _) = keypair();
         let (recipient, _) = keypair();
 
-        let out = get_transaction_out(&sender, &recipient, 30, 100);
+        let out = get_transaction_out(&sender, &recipient, 30, 10, 100);
 
         assert_eq!(out.len(), 2);
         assert_eq!(out[0].address, recipient);
         assert_eq!(out[0].amount, 30);
         assert_eq!(out[1].address, sender);
-        assert_eq!(out[1].amount, 70);
+        assert_eq!(out[1].amount, 60);
     }
 
     #[test]
@@ -473,6 +507,7 @@ mod tests {
                 amount: 10,
             }],
             vec![TransactionIn { unspent_id: 1 }],
+            0,
             &sk,
         )
         .unwrap();
@@ -485,5 +520,68 @@ mod tests {
 
         assert!(tx.verify_signature());
         assert!(!tx.is_valid(&unspent_transactions));
+    }
+
+    #[test]
+    fn verify_signature_fails_when_fee_is_tampered() {
+        let (sender, sk) = keypair();
+        let (recipient, _) = keypair();
+
+        let mut tx = Transaction::new_with_creating_signature(
+            &sender,
+            vec![TransactionOut {
+                address: recipient,
+                amount: 10,
+            }],
+            vec![TransactionIn { unspent_id: 1 }],
+            2,
+            &sk,
+        )
+        .unwrap();
+
+        let unspent_transactions = vec![UnspentTransaction {
+            id: 1,
+            address: sender,
+            amount: 12, // 10 + fee 2
+        }];
+
+        assert!(tx.verify_signature());
+        assert!(tx.is_valid(&unspent_transactions));
+
+        tx.fee = 3;
+        assert!(!tx.verify_signature());
+        assert!(!tx.is_valid(&unspent_transactions));
+    }
+
+    #[test]
+    fn is_valid_requires_input_to_equal_outputs_plus_fee() {
+        let (sender, sk) = keypair();
+        let (recipient, _) = keypair();
+
+        let tx = Transaction::new_with_creating_signature(
+            &sender,
+            vec![TransactionOut {
+                address: recipient,
+                amount: 10,
+            }],
+            vec![TransactionIn { unspent_id: 1 }],
+            2,
+            &sk,
+        )
+        .unwrap();
+
+        let ok = vec![UnspentTransaction {
+            id: 1,
+            address: sender.clone(),
+            amount: 12,
+        }];
+        let ng = vec![UnspentTransaction {
+            id: 1,
+            address: sender,
+            amount: 11,
+        }];
+
+        assert!(tx.is_valid(&ok));
+        assert!(!tx.is_valid(&ng));
     }
 }

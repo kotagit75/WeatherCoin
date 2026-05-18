@@ -80,7 +80,8 @@ async fn handle_get_balance_with_address(
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
 struct TransactionPayload {
     recipient: String,
-    amount: u64,
+    send_amount: u64,
+    fee: u64,
 }
 async fn handle_post_transaction(
     extract::State((event_tx, _)): extract::State<(mpsc::Sender<Event>, watch::Receiver<State>)>,
@@ -92,7 +93,8 @@ async fn handle_post_transaction(
                 PK {
                     der: payload.recipient,
                 },
-                payload.amount,
+                payload.send_amount,
+                payload.fee,
             ))
             .await
             .is_ok(),

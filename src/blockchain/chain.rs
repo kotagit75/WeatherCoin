@@ -134,10 +134,13 @@ impl Chain {
         &self,
         sender: &Address,
         recipient: &Address,
-        amount: u64,
+        send_amount: u64,
         secret_key: &SK,
         used_transactions: &[Transaction],
+        fee: u64,
     ) -> Result<Option<Transaction>, ErrorStack> {
+        let amount = send_amount + fee;
+
         if self.get_balance(sender) < amount {
             return Ok(None);
         }
@@ -164,13 +167,15 @@ impl Chain {
             get_transaction_out(
                 sender,
                 recipient,
-                amount,
-                use_unspent.iter().map(|tx| tx.amount).sum(),
+                send_amount,
+                fee,
+                use_unspent.iter().map(|tx| tx.amount).sum::<u64>(),
             ),
             use_unspent
                 .iter()
                 .map(|tx| TransactionIn { unspent_id: tx.id })
                 .collect(),
+            fee,
             secret_key,
         )?;
         Ok(Some(transaction))
@@ -247,9 +252,9 @@ mod tests {
         let (miner, _) = keypair();
         let c = chain_with_coinbase(&miner);
         let (utxos, next_id) = c.get_unspent_transactions();
-        assert_eq!(utxos.len(), 1);
+        assert_eq!(utxos.len(), 2); /* coinbase and fee */
         assert_eq!(utxos[0].amount, 50);
-        assert_eq!(next_id, 2);
+        assert_eq!(next_id, 3); /* coinbase -> fee ->  */
         assert!(c.find_unspent_transaction(1).is_some());
         assert!(c.find_unspent_transaction(999).is_none());
     }
@@ -260,7 +265,7 @@ mod tests {
         let (recipient, _) = keypair();
         let c = chain_with_coinbase(&sender);
         let tx = c
-            .generate_transaction(&sender, &recipient, 999, &sk, &[])
+            .generate_transaction(&sender, &recipient, 999, &sk, &[], 0)
             .unwrap();
         assert!(tx.is_none());
     }
@@ -272,7 +277,7 @@ mod tests {
         let c = chain_with_coinbase(&sender);
 
         let tx = c
-            .generate_transaction(&sender, &recipient, 30, &sk, &[])
+            .generate_transaction(&sender, &recipient, 30, &sk, &[], 0)
             .unwrap()
             .unwrap();
 
@@ -287,12 +292,12 @@ mod tests {
         let c = chain_with_coinbase(&sender);
 
         let used = c
-            .generate_transaction(&sender, &recipient, 30, &sk, &[])
+            .generate_transaction(&sender, &recipient, 30, &sk, &[], 0)
             .unwrap()
             .unwrap();
 
         let next = c
-            .generate_transaction(&sender, &recipient, 10, &sk, &[used])
+            .generate_transaction(&sender, &recipient, 10, &sk, &[used], 0)
             .unwrap();
 
         assert!(next.is_none());
@@ -331,5 +336,18 @@ mod tests {
             blocks: vec![g.clone(), dummy_block(&g, vec![], 1.0)],
         };
         assert_eq!(base.replace(longer_but_invalid), base);
+    }
+
+    #[test]
+    fn generate_transaction_returns_none_when_amount_plus_fee_exceeds_funds() {
+        let (sender, sk) = keypair();
+        let (recipient, _) = keypair();
+        let c = chain_with_coinbase(&sender);
+
+        let tx = c
+            .generate_transaction(&sender, &recipient, 49, &sk, &[], 2)
+            .unwrap();
+
+        assert!(tx.is_none());
     }
 }

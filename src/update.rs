@@ -17,7 +17,7 @@ use tokio::sync::mpsc;
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub enum Event {
     AddPeer(Peer),
-    AddTransaction(Address, u64),
+    AddTransaction(Address, u64, u64),
     MineBlock,
     CompletedMineBlock(Block),
     P2PMessage(P2PMessage),
@@ -44,7 +44,7 @@ pub fn update(event: Event, state: State) -> (State, Effect) {
                 Effect::None,
             );
         }
-        Event::AddTransaction(recipient, amount) => {
+        Event::AddTransaction(recipient, send_amount, fee) => {
             if !is_valid_address(&recipient) {
                 info!("invalid recipient address: {}", recipient.der);
                 return (state, Effect::None);
@@ -52,9 +52,10 @@ pub fn update(event: Event, state: State) -> (State, Effect) {
             if let Ok(Some(transaction)) = state.chain.generate_transaction(
                 &state.address,
                 &recipient,
-                amount,
+                send_amount,
                 &state.secret_key,
                 &state.transactions,
+                fee,
             ) {
                 let (state, changed) = state.add_transaction(&transaction);
                 if changed {
@@ -260,7 +261,7 @@ mod tests {
             der: "this-is-not-hex".to_string(),
         };
 
-        let (next, effect) = update(Event::AddTransaction(invalid, 10), state.clone());
+        let (next, effect) = update(Event::AddTransaction(invalid, 10, 0), state.clone());
 
         assert_eq!(effect, Effect::None);
         assert_eq!(next, state);
@@ -271,7 +272,7 @@ mod tests {
         let state = funded_state();
         let (recipient, _) = keypair();
 
-        let (next, effect) = update(Event::AddTransaction(recipient, 10), state);
+        let (next, effect) = update(Event::AddTransaction(recipient, 10, 0), state);
 
         assert_eq!(next.transactions.len(), 1);
         match effect {
@@ -286,7 +287,7 @@ mod tests {
         let (recipient, _) = keypair();
         let tx = state
             .chain
-            .generate_transaction(&state.address, &recipient, 10, &state.secret_key, &[])
+            .generate_transaction(&state.address, &recipient, 10, &state.secret_key, &[], 0)
             .unwrap()
             .unwrap();
         state.transactions.push(tx);
@@ -308,7 +309,7 @@ mod tests {
         let (recipient, _) = keypair();
         let tx = state
             .chain
-            .generate_transaction(&state.address, &recipient, 10, &state.secret_key, &[])
+            .generate_transaction(&state.address, &recipient, 10, &state.secret_key, &[], 0)
             .unwrap()
             .unwrap();
         state.transactions.push(tx.clone());
@@ -328,7 +329,7 @@ mod tests {
         let (recipient, _) = keypair();
         let tx = state
             .chain
-            .generate_transaction(&state.address, &recipient, 10, &state.secret_key, &[])
+            .generate_transaction(&state.address, &recipient, 10, &state.secret_key, &[], 0)
             .unwrap()
             .unwrap();
 
@@ -347,7 +348,7 @@ mod tests {
         let (recipient, _) = keypair();
         let tx = state
             .chain
-            .generate_transaction(&state.address, &recipient, 10, &state.secret_key, &[])
+            .generate_transaction(&state.address, &recipient, 10, &state.secret_key, &[], 0)
             .unwrap()
             .unwrap();
         state.transactions.push(tx.clone());
@@ -359,5 +360,31 @@ mod tests {
 
         assert_eq!(next, state);
         assert_eq!(effect, Effect::None);
+    }
+
+    #[test]
+    fn add_transaction_with_fee_is_rejected_when_not_enough_for_fee() {
+        let state = funded_state();
+        let (recipient, _) = keypair();
+
+        let (next, effect) = update(Event::AddTransaction(recipient, 50, 1), state.clone());
+
+        assert_eq!(next, state);
+        assert_eq!(effect, Effect::None);
+    }
+
+    #[test]
+    fn add_transaction_with_fee_is_broadcast_when_sufficient() {
+        let state = funded_state();
+        let (recipient, _) = keypair();
+
+        let (next, effect) = update(Event::AddTransaction(recipient, 48, 2), state);
+
+        assert_eq!(next.transactions.len(), 1);
+        match effect {
+            Effect::BroadcastResponseTransactions(txs) => assert_eq!(txs.len(), 1),
+            _ => panic!("expected BroadcastResponseTransactions"),
+        }
+        assert_eq!(next.transactions[0].fee, 2);
     }
 }

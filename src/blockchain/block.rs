@@ -152,7 +152,7 @@ impl Block {
         self.transactions
             .iter()
             .fold((previous_unspent, first_id), |acc, tx| {
-                tx.get_unspent_transactions(acc)
+                tx.fee_to_unspent_transaction(self.issuer.clone(), tx.get_unspent_transactions(acc))
             })
     }
 }
@@ -239,4 +239,59 @@ fn block_to_buf_for_vdf(blockdata: &BlockData) -> Vec<u8> {
 }
 pub fn solve_block_vdf(blockdata: &BlockData) -> Result<Vec<u8>, InvalidIterations> {
     solve(block_to_buf_for_vdf(blockdata).as_slice())
+}
+
+mod tests {
+    use crate::{
+        blockchain::transaction::{TransactionIn, TransactionOut, coinbase_transaction},
+        util::key::generate_pk_and_sk,
+    };
+
+    use super::*;
+
+    fn keypair() -> (Address, SK) {
+        let (pk, sk) = generate_pk_and_sk(512).unwrap();
+        (pk, sk)
+    }
+
+    #[test]
+    fn get_unspent_transactions_adds_fee_to_miner_utxo() {
+        let (sender, sk) = keypair();
+        let (recipient, _) = keypair();
+        let (miner, _) = keypair();
+
+        let tx = Transaction::new_with_creating_signature(
+            &sender,
+            vec![TransactionOut {
+                address: recipient,
+                amount: 10,
+            }],
+            vec![TransactionIn { unspent_id: 1 }],
+            2,
+            &sk,
+        )
+        .unwrap();
+
+        let prev = vec![UnspentTransaction {
+            id: 1,
+            address: sender,
+            amount: 12,
+        }];
+
+        let b = Block {
+            index: 1,
+            timestamp: 1,
+            transactions: vec![coinbase_transaction(&miner, 1), tx],
+            beacon: Beacon { values: vec![] },
+            vdf_solution: vec![],
+            previous_hash: [0; 32],
+            issuer: miner.clone(),
+            signature: vec![],
+            hash: [1; 32],
+        };
+
+        let (next, _) = b.get_unspent_transactions((prev, 2));
+
+        assert!(next.iter().any(|u| u.address == miner && u.amount == 2));
+    }
 }
