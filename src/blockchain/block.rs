@@ -241,6 +241,7 @@ pub fn solve_block_vdf(blockdata: &BlockData) -> Result<Vec<u8>, InvalidIteratio
     solve(block_to_buf_for_vdf(blockdata).as_slice())
 }
 
+#[cfg(test)]
 mod tests {
     use crate::{
         blockchain::transaction::{TransactionIn, TransactionOut, coinbase_transaction},
